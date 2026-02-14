@@ -1,13 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   Pressable,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
+  Keyboard,
 } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { colors, typography, spacing, radii, shadows } from '../constants/theme';
 import { parseDollarInput } from '../utils/currency';
 
@@ -19,7 +19,22 @@ interface PurchaseFormProps {
 export function PurchaseForm({ onSubmit, onCancel }: PurchaseFormProps) {
   const [name, setName] = useState('');
   const [amountStr, setAmountStr] = useState('');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const tabBarHeight = useBottomTabBarHeight();
   const amountRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardWillShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener('keyboardWillHide', () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleSubmit = () => {
     const amount = parseDollarInput(amountStr);
@@ -31,11 +46,7 @@ export function PurchaseForm({ onSubmit, onCancel }: PurchaseFormProps) {
   const isValid = name.trim().length > 0 && parseDollarInput(amountStr) > 0;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
-      style={styles.wrapper}
-    >
+    <View style={[styles.wrapper, { bottom: Math.max(0, keyboardHeight - tabBarHeight) }]}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>New Purchase</Text>
@@ -91,14 +102,13 @@ export function PurchaseForm({ onSubmit, onCancel }: PurchaseFormProps) {
           </Text>
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
   },
@@ -107,7 +117,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.md,
     ...shadows.elevated,
   },
   header: {
