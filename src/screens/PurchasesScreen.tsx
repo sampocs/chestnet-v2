@@ -467,6 +467,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + spacing.xs,
     marginBottom: spacing.xs,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
   },
   rowPressed: {
     backgroundColor: colors.surfaceHover,
