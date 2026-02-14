@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import type { AppData, Purchase } from '../types';
 import { loadAppData, saveAppData } from '../utils/storage';
+import { USE_SEED_DATA, generateSeedData } from '../utils/seedData';
 
 type Action =
   | { type: 'LOAD_DATA'; payload: AppData }
@@ -124,15 +125,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
-    loadAppData().then((loaded) => {
-      dispatch({ type: 'LOAD_DATA', payload: loaded });
+    if (USE_SEED_DATA) {
+      dispatch({ type: 'LOAD_DATA', payload: generateSeedData() });
       setHasLoaded(true);
       setIsLoading(false);
-    });
+    } else {
+      loadAppData().then((loaded) => {
+        dispatch({ type: 'LOAD_DATA', payload: loaded });
+        setHasLoaded(true);
+        setIsLoading(false);
+      });
+    }
   }, []);
 
   useEffect(() => {
-    if (hasLoaded) {
+    if (hasLoaded && !USE_SEED_DATA) {
       saveAppData(data);
     }
   }, [data, hasLoaded]);
