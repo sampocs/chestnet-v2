@@ -5,8 +5,8 @@ export const colors = {
   surfaceHover: '#222633',
 
   // Primary accent
-  primary: '#6C63FF',
-  primaryMuted: '#6C63FF1A',
+  primary: '#10B981',
+  primaryMuted: '#10B9811A',
 
   // Text hierarchy
   textPrimary: '#F0F0F3',
