@@ -16,7 +16,8 @@ type Action =
   | { type: 'EDIT_PURCHASE'; weekStart: string; purchase: Purchase }
   | { type: 'DELETE_PURCHASE'; weekStart: string; purchaseId: string }
   | { type: 'SET_BUDGET'; weekStart: string; budget: number }
-  | { type: 'ENSURE_WEEK_EXISTS'; weekStart: string };
+  | { type: 'ENSURE_WEEK_EXISTS'; weekStart: string }
+  | { type: 'SET_PURCHASES'; weekStart: string; purchases: Purchase[] };
 
 function appReducer(state: AppData, action: Action): AppData {
   switch (action.type) {
@@ -82,6 +83,21 @@ function appReducer(state: AppData, action: Action): AppData {
             purchases: week.purchases.filter(
               (p) => p.id !== action.purchaseId,
             ),
+          },
+        },
+      };
+    }
+
+    case 'SET_PURCHASES': {
+      const week = state.weeks[action.weekStart];
+      if (!week) return state;
+      return {
+        ...state,
+        weeks: {
+          ...state.weeks,
+          [action.weekStart]: {
+            ...week,
+            purchases: action.purchases,
           },
         },
       };

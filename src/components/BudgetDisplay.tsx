@@ -95,10 +95,7 @@ const styles = StyleSheet.create({
     ...typography.heading,
     color: colors.textSecondary,
   },
-  budgetEditable: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.textTertiary,
-  },
+  budgetEditable: {},
   budgetInput: {
     ...typography.heading,
     color: colors.textPrimary,
