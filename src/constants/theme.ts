@@ -16,8 +16,8 @@ export const colors = {
   // Semantic
   success: '#34D399',
   successMuted: '#34D3991A',
-  danger: '#F472B6',
-  dangerMuted: '#F472B61A',
+  danger: '#F082A0',
+  dangerMuted: '#F082A01A',
 
   // Structural
   border: '#323745',
