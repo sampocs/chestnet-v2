@@ -13,6 +13,7 @@ interface BudgetDisplayProps {
   spent: number;
   budget: number;
   isEditable: boolean;
+  isCurrentWeek: boolean;
   onBudgetChange: (newBudget: number) => void;
 }
 
@@ -20,6 +21,7 @@ export function BudgetDisplay({
   spent,
   budget,
   isEditable,
+  isCurrentWeek,
   onBudgetChange,
 }: BudgetDisplayProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -27,7 +29,12 @@ export function BudgetDisplay({
   const inputRef = useRef<TextInput>(null);
 
   const isOverBudget = spent > budget;
-  const spentColor = isOverBudget ? colors.danger : colors.textPrimary;
+  const isUnderBudget = !isCurrentWeek && spent > 0 && !isOverBudget;
+  const spentColor = isOverBudget
+    ? colors.danger
+    : isUnderBudget
+      ? colors.success
+      : colors.textPrimary;
 
   const handleStartEdit = () => {
     if (!isEditable) return;

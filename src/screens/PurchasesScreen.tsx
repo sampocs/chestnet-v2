@@ -61,7 +61,7 @@ export default function PurchasesScreen() {
     [currentWeekStart],
   );
 
-  const isEditable = isCurrentOrFutureWeek(currentWeekStart);
+  const isEditable = true;
 
   // Build flat list: day headers + purchases interleaved, all 7 days shown
   const listData: ListItem[] = useMemo(() => {
@@ -248,6 +248,7 @@ export default function PurchasesScreen() {
         spent={totalSpent}
         budget={budget}
         isBudgetEditable={isEditable}
+        isCurrentWeek={currentWeekStart === getWeekStart(new Date())}
         onBudgetChange={handleBudgetChange}
       />
 

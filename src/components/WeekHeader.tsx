@@ -12,6 +12,7 @@ interface WeekHeaderProps {
   spent: number;
   budget: number;
   isBudgetEditable: boolean;
+  isCurrentWeek: boolean;
   onBudgetChange: (newBudget: number) => void;
 }
 
@@ -22,6 +23,7 @@ export function WeekHeader({
   spent,
   budget,
   isBudgetEditable,
+  isCurrentWeek,
   onBudgetChange,
 }: WeekHeaderProps) {
   return (
@@ -64,6 +66,7 @@ export function WeekHeader({
         spent={spent}
         budget={budget}
         isEditable={isBudgetEditable}
+        isCurrentWeek={isCurrentWeek}
         onBudgetChange={onBudgetChange}
       />
     </View>
