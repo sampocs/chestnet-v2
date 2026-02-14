@@ -16,6 +16,13 @@ export default function HistoryScreen() {
 
   const summaries: WeekSummary[] = useMemo(() => {
     return Object.values(data.weeks)
+      .filter((week) => {
+        // Hide future weeks unless they have purchases
+        if (week.startDate > currentWeekStart) {
+          return week.purchases.length > 0;
+        }
+        return true;
+      })
       .map((week) => ({
         startDate: week.startDate,
         endDate: getWeekEnd(week.startDate),
@@ -25,7 +32,7 @@ export default function HistoryScreen() {
           week.purchases.reduce((sum, p) => sum + p.amount, 0) > week.budget,
       }))
       .sort((a, b) => b.startDate.localeCompare(a.startDate));
-  }, [data.weeks]);
+  }, [data.weeks, currentWeekStart]);
 
   const weeklyAverage = useMemo(() => {
     if (summaries.length === 0) return 0;

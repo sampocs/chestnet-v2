@@ -16,16 +16,24 @@ export function WeekHistoryRow({ summary, isCurrent }: WeekHistoryRowProps) {
     ? colors.dangerMuted
     : colors.successMuted;
 
+  const statusLabel = summary.isOverBudget
+    ? 'Over budget'
+    : isCurrent
+      ? 'On track'
+      : 'Under budget';
+
   return (
     <View style={[styles.container, { borderLeftColor: statusColor }]}>
       <View style={styles.leftSection}>
-        <Text style={styles.weekLabel}>
-          Week of {formatShortDate(summary.startDate)}
-          {isCurrent ? ' (current)' : ''}
-        </Text>
+        <View style={styles.weekLabelRow}>
+          {isCurrent && <View style={styles.currentDot} />}
+          <Text style={styles.weekLabel}>
+            Week of {formatShortDate(summary.startDate)}
+          </Text>
+        </View>
         <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
           <Text style={[styles.statusText, { color: statusColor }]}>
-            {summary.isOverBudget ? 'Over budget' : 'On track'}
+            {statusLabel}
           </Text>
         </View>
       </View>
@@ -54,10 +62,21 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: spacing.md,
   },
+  weekLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  currentDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.textPrimary,
+  },
   weekLabel: {
     ...typography.body,
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
   },
   statusBadge: {
     alignSelf: 'flex-start',
