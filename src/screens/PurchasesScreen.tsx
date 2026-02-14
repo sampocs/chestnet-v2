@@ -18,6 +18,7 @@ import {
   getDayName,
   formatShortDate,
   isCurrentOrFutureWeek,
+  getTodayString,
 } from '../utils/dates';
 import { formatDollars, parseDollarInput } from '../utils/currency';
 import { WeekHeader } from '../components/WeekHeader';
@@ -178,13 +179,20 @@ export default function PurchasesScreen() {
     [dispatch, currentWeekStart, movingPurchase, haptics],
   );
 
+  const today = getTodayString();
+
   const renderItem = useCallback(
     ({ item }: { item: ListItem }) => {
       if (item.type === 'day-header') {
+        const isToday = item.dateStr === today;
         return (
-          <View style={styles.dayHeader}>
-            <Text style={styles.dayName}>{getDayName(item.dateStr)}</Text>
-            <Text style={styles.dayDate}>{formatShortDate(item.dateStr)}</Text>
+          <View style={[styles.dayHeader, isToday && styles.dayHeaderToday]}>
+            <Text style={[styles.dayName, isToday && styles.dayNameToday]}>
+              {getDayName(item.dateStr)}
+            </Text>
+            <Text style={[styles.dayDate, isToday && styles.dayDateToday]}>
+              {isToday ? 'Today' : formatShortDate(item.dateStr)}
+            </Text>
           </View>
         );
       }
@@ -234,7 +242,7 @@ export default function PurchasesScreen() {
         </Pressable>
       );
     },
-    [editingPurchaseId, isEditable, handleEditPurchase, handleDeletePurchase, haptics],
+    [editingPurchaseId, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today],
   );
 
   const keyExtractor = useCallback((item: ListItem) => item.key, []);
@@ -423,13 +431,24 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     paddingHorizontal: spacing.xs,
   },
+  dayHeaderToday: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+    paddingLeft: spacing.sm,
+  },
   dayName: {
     ...typography.subheading,
     color: colors.textPrimary,
   },
+  dayNameToday: {
+    color: colors.primary,
+  },
   dayDate: {
     ...typography.caption,
     color: colors.textTertiary,
+  },
+  dayDateToday: {
+    color: colors.primary,
   },
   emptyDay: {
     paddingVertical: spacing.sm,
