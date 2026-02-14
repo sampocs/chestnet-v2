@@ -1,8 +1,8 @@
 export const colors = {
   // Backgrounds
-  background: '#0F1117',
-  surface: '#1A1D27',
-  surfaceHover: '#222633',
+  background: '#131620',
+  surface: '#1A1E2C',
+  surfaceHover: '#242837',
 
   // Primary accent
   primary: '#10B981',
@@ -11,7 +11,7 @@ export const colors = {
   // Text hierarchy
   textPrimary: '#F0F0F3',
   textSecondary: '#9BA1B0',
-  textTertiary: '#565C6B',
+  textTertiary: '#848B9E',
 
   // Semantic
   success: '#34D399',
@@ -20,9 +20,9 @@ export const colors = {
   dangerMuted: '#F472B61A',
 
   // Structural
-  border: '#2A2E3A',
-  inputBg: '#1E2130',
-  tabBarBg: '#13151D',
+  border: '#323745',
+  inputBg: '#1A1E2B',
+  tabBarBg: '#111420',
 } as const;
 
 export const typography = {

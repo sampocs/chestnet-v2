@@ -46,67 +46,63 @@ export function PurchaseForm({ onSubmit, onCancel }: PurchaseFormProps) {
   const isValid = name.trim().length > 0 && parseDollarInput(amountStr) > 0;
 
   return (
-    <View style={[styles.wrapper, { bottom: Math.max(0, keyboardHeight - tabBarHeight) }]}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>New Purchase</Text>
+    <>
+      <Pressable style={styles.backdrop} onPress={onCancel} />
+      <View style={[styles.wrapper, { bottom: Math.max(0, keyboardHeight - tabBarHeight) }]}>
+        <View style={styles.container}>
+          <View style={styles.fields}>
+            <TextInput
+              style={styles.input}
+              placeholder="What did you buy?"
+              placeholderTextColor={colors.textTertiary}
+              value={name}
+              onChangeText={setName}
+              autoFocus
+              returnKeyType="next"
+              onSubmitEditing={() => amountRef.current?.focus()}
+            />
+            <TextInput
+              ref={amountRef}
+              style={styles.input}
+              placeholder="$0"
+              placeholderTextColor={colors.textTertiary}
+              value={amountStr}
+              onChangeText={setAmountStr}
+              keyboardType="number-pad"
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit}
+            />
+          </View>
+
           <Pressable
-            onPress={onCancel}
-            hitSlop={12}
-            style={({ pressed }) => pressed && { opacity: 0.5 }}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.fields}>
-          <TextInput
-            style={styles.input}
-            placeholder="Item name"
-            placeholderTextColor={colors.textTertiary}
-            value={name}
-            onChangeText={setName}
-            autoFocus
-            returnKeyType="next"
-            onSubmitEditing={() => amountRef.current?.focus()}
-          />
-          <TextInput
-            ref={amountRef}
-            style={styles.input}
-            placeholder="$0"
-            placeholderTextColor={colors.textTertiary}
-            value={amountStr}
-            onChangeText={setAmountStr}
-            keyboardType="number-pad"
-            returnKeyType="done"
-            onSubmitEditing={handleSubmit}
-          />
-        </View>
-
-        <Pressable
-          onPress={handleSubmit}
-          disabled={!isValid}
-          style={({ pressed }) => [
-            styles.submitButton,
-            !isValid && styles.submitButtonDisabled,
-            pressed && isValid && styles.submitButtonPressed,
-          ]}
-        >
-          <Text
-            style={[
-              styles.submitText,
-              !isValid && styles.submitTextDisabled,
+            onPress={handleSubmit}
+            disabled={!isValid}
+            style={({ pressed }) => [
+              styles.submitButton,
+              !isValid && styles.submitButtonDisabled,
+              pressed && isValid && styles.submitButtonPressed,
             ]}
           >
-            Add Purchase
-          </Text>
-        </Pressable>
+            <Text
+              style={[
+                styles.submitText,
+                !isValid && styles.submitTextDisabled,
+              ]}
+            >
+              Add
+            </Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
   wrapper: {
     position: 'absolute',
     left: 0,
