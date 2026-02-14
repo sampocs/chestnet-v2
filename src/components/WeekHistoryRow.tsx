@@ -16,11 +16,10 @@ export function WeekHistoryRow({ summary, isCurrent }: WeekHistoryRowProps) {
     ? colors.dangerMuted
     : colors.successMuted;
 
-  const statusLabel = summary.isOverBudget
-    ? 'Over budget'
-    : isCurrent
-      ? 'On track'
-      : 'Under budget';
+  const delta = summary.totalSpent - summary.budget;
+  const deltaLabel = delta > 0
+    ? `Over by ${formatDollars(delta)}`
+    : `Under by ${formatDollars(Math.abs(delta))}`;
 
   return (
     <View style={[styles.container, { borderLeftColor: statusColor }]}>
@@ -33,7 +32,7 @@ export function WeekHistoryRow({ summary, isCurrent }: WeekHistoryRowProps) {
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
           <Text style={[styles.statusText, { color: statusColor }]}>
-            {statusLabel}
+            {deltaLabel}
           </Text>
         </View>
       </View>
@@ -85,8 +84,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
   },
   statusText: {
-    ...typography.footnote,
-    fontWeight: '500',
+    ...typography.caption,
+    fontWeight: '600',
   },
   rightSection: {
     alignItems: 'flex-end',
