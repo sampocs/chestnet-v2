@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { colors, typography, spacing, radii } from '../constants/theme';
 import { formatShortDate } from '../utils/dates';
 import { formatDollars } from '../utils/currency';
@@ -8,9 +8,10 @@ import type { WeekSummary } from '../types';
 interface WeekHistoryRowProps {
   summary: WeekSummary;
   isCurrent: boolean;
+  onPress?: () => void;
 }
 
-export function WeekHistoryRow({ summary, isCurrent }: WeekHistoryRowProps) {
+export function WeekHistoryRow({ summary, isCurrent, onPress }: WeekHistoryRowProps) {
   const statusColor = summary.isOverBudget ? colors.danger : colors.success;
   const statusBg = summary.isOverBudget
     ? colors.dangerMuted
@@ -22,7 +23,14 @@ export function WeekHistoryRow({ summary, isCurrent }: WeekHistoryRowProps) {
     : `Under by ${formatDollars(Math.abs(delta))}`;
 
   return (
-    <View style={[styles.container, { borderLeftColor: statusColor }]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.container,
+        { borderLeftColor: statusColor },
+        pressed && styles.pressed,
+      ]}
+    >
       <View style={styles.leftSection}>
         <View style={styles.weekLabelRow}>
           {isCurrent && <View style={styles.currentDot} />}
@@ -42,7 +50,7 @@ export function WeekHistoryRow({ summary, isCurrent }: WeekHistoryRowProps) {
         </Text>
         <Text style={styles.budget}>/ {formatDollars(summary.budget)}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -56,6 +64,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderLeftWidth: 3,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   leftSection: {
     flex: 1,

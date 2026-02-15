@@ -9,6 +9,7 @@ interface WeekHeaderProps {
   weekStart: string;
   onPrevious: () => void;
   onNext: () => void;
+  onJumpToCurrentWeek: () => void;
   spent: number;
   budget: number;
   isBudgetEditable: boolean;
@@ -20,6 +21,7 @@ export function WeekHeader({
   weekStart,
   onPrevious,
   onNext,
+  onJumpToCurrentWeek,
   spent,
   budget,
   isBudgetEditable,
@@ -44,7 +46,9 @@ export function WeekHeader({
           />
         </Pressable>
 
-        <Text style={styles.weekLabel}>{formatWeekRange(weekStart)}</Text>
+        <Pressable onPress={onJumpToCurrentWeek} hitSlop={8}>
+          <Text style={styles.weekLabel}>{formatWeekRange(weekStart)}</Text>
+        </Pressable>
 
         <Pressable
           onPress={onNext}

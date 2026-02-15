@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, FlatList, Text, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radii } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
@@ -9,6 +10,7 @@ import { WeekHistoryRow } from '../components/WeekHistoryRow';
 import type { WeekSummary } from '../types';
 
 export default function HistoryScreen() {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { data } = useAppContext();
 
@@ -68,6 +70,7 @@ export default function HistoryScreen() {
             <WeekHistoryRow
               summary={item}
               isCurrent={item.startDate === currentWeekStart}
+              onPress={() => navigation.navigate('Purchases', { weekStart: item.startDate })}
             />
           )}
         />

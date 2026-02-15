@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { View, FlatList, StyleSheet, Pressable, Text, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radii } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
@@ -26,6 +27,7 @@ type ListItem =
 
 export default function PurchasesScreen() {
   const insets = useSafeAreaInsets();
+  const route = useRoute<any>();
   const { data, dispatch } = useAppContext();
   const haptics = useHaptics();
 
@@ -35,6 +37,13 @@ export default function PurchasesScreen() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList<ListItem>>(null);
+
+  // Navigate to a specific week when coming from History
+  useEffect(() => {
+    if (route.params?.weekStart) {
+      setCurrentWeekStart(route.params.weekStart);
+    }
+  }, [route.params?.weekStart]);
 
   React.useEffect(() => {
     dispatch({ type: 'ENSURE_WEEK_EXISTS', weekStart: currentWeekStart });
@@ -89,6 +98,13 @@ export default function PurchasesScreen() {
   const handleNextWeek = useCallback(() => {
     haptics.light();
     setCurrentWeekStart((prev) => shiftWeek(prev, 1));
+    setIsAdding(false);
+    setEditingPurchaseId(null);
+  }, [haptics]);
+
+  const handleJumpToCurrentWeek = useCallback(() => {
+    haptics.light();
+    setCurrentWeekStart(getWeekStart(new Date()));
     setIsAdding(false);
     setEditingPurchaseId(null);
   }, [haptics]);
@@ -242,6 +258,7 @@ export default function PurchasesScreen() {
         weekStart={currentWeekStart}
         onPrevious={handlePrevWeek}
         onNext={handleNextWeek}
+        onJumpToCurrentWeek={handleJumpToCurrentWeek}
         spent={totalSpent}
         budget={budget}
         isBudgetEditable={isEditable}
