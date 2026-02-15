@@ -5,7 +5,7 @@ import type { AppData } from '../types';
  * Toggle this to seed the app with dummy data on load.
  * Set to false to use real persisted data.
  */
-export const USE_SEED_DATA = true;
+export const USE_SEED_DATA = false;
 
 function uuid(): string {
   return 'seed-' + Math.random().toString(36).substring(2, 10);
