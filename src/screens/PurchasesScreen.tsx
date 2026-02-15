@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   FlatList,
@@ -8,6 +8,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
+import type { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radii } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
@@ -23,6 +24,7 @@ import {
 import { formatDollars, parseDollarInput } from '../utils/currency';
 import { WeekHeader } from '../components/WeekHeader';
 import { PurchaseForm } from '../components/PurchaseForm';
+import { SwipeableRow } from '../components/SwipeableRow';
 import { useHaptics } from '../hooks/useHaptics';
 import * as Crypto from 'expo-crypto';
 import type { Purchase } from '../types';
@@ -43,6 +45,15 @@ export default function PurchasesScreen() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
   const [movingPurchase, setMovingPurchase] = useState<Purchase | null>(null);
+  const swipeableRefs = useRef<Map<string, SwipeableMethods | null>>(new Map());
+  const openSwipeableId = useRef<string | null>(null);
+
+  const closeOpenSwipeable = useCallback(() => {
+    if (openSwipeableId.current) {
+      swipeableRefs.current.get(openSwipeableId.current)?.close();
+      openSwipeableId.current = null;
+    }
+  }, []);
 
   React.useEffect(() => {
     dispatch({ type: 'ENSURE_WEEK_EXISTS', weekStart: currentWeekStart });
@@ -223,26 +234,52 @@ export default function PurchasesScreen() {
       }
 
       return (
-        <Pressable
-          onPress={isEditable ? () => setEditingPurchaseId(purchase.id) : undefined}
-          onLongPress={isEditable ? () => {
-            haptics.light();
-            setMovingPurchase(purchase);
-          } : undefined}
-          delayLongPress={300}
-          style={({ pressed }) => [
-            styles.row,
-            pressed && styles.rowPressed,
-          ]}
+        <SwipeableRow
+          onDelete={() => handleDeletePurchase(purchase.id)}
+          onSwipeOpen={() => {
+            if (openSwipeableId.current && openSwipeableId.current !== purchase.id) {
+              swipeableRefs.current.get(openSwipeableId.current)?.close();
+            }
+            openSwipeableId.current = purchase.id;
+          }}
+          swipeableRef={{
+            get current() {
+              return swipeableRefs.current.get(purchase.id) ?? null;
+            },
+            set current(ref: SwipeableMethods | null) {
+              if (ref) {
+                swipeableRefs.current.set(purchase.id, ref);
+              } else {
+                swipeableRefs.current.delete(purchase.id);
+              }
+            },
+          }}
         >
-          <Text style={styles.rowName} numberOfLines={1}>
-            {purchase.name}
-          </Text>
-          <Text style={styles.rowAmount}>{formatDollars(purchase.amount)}</Text>
-        </Pressable>
+          <Pressable
+            onPress={isEditable ? () => {
+              closeOpenSwipeable();
+              setEditingPurchaseId(purchase.id);
+            } : undefined}
+            onLongPress={isEditable ? () => {
+              closeOpenSwipeable();
+              haptics.light();
+              setMovingPurchase(purchase);
+            } : undefined}
+            delayLongPress={300}
+            style={({ pressed }) => [
+              styles.row,
+              pressed && styles.rowPressed,
+            ]}
+          >
+            <Text style={styles.rowName} numberOfLines={1}>
+              {purchase.name}
+            </Text>
+            <Text style={styles.rowAmount}>{formatDollars(purchase.amount)}</Text>
+          </Pressable>
+        </SwipeableRow>
       );
     },
-    [editingPurchaseId, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today],
+    [editingPurchaseId, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today, closeOpenSwipeable],
   );
 
   const keyExtractor = useCallback((item: ListItem) => item.key, []);
