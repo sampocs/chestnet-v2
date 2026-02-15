@@ -5,17 +5,21 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0F1117"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.chestnut.app"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.chestnut.app",
+      "splash": {
+        "backgroundColor": "#0F1117"
+      }
     },
-    "platforms": ["ios"]
+    "platforms": ["ios"],
+    "plugins": ["expo-splash-screen"]
   }
 }
