@@ -1,14 +1,5 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  Pressable,
-  Text,
-  TextInput,
-  Modal,
-} from 'react-native';
-import type { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { View, FlatList, StyleSheet, Pressable, Text, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radii } from '../constants/theme';
 import { useAppContext } from '../context/AppContext';
@@ -24,7 +15,6 @@ import {
 import { formatDollars, parseDollarInput } from '../utils/currency';
 import { WeekHeader } from '../components/WeekHeader';
 import { PurchaseForm } from '../components/PurchaseForm';
-import { SwipeableRow } from '../components/SwipeableRow';
 import { useHaptics } from '../hooks/useHaptics';
 import * as Crypto from 'expo-crypto';
 import type { Purchase } from '../types';
@@ -44,16 +34,7 @@ export default function PurchasesScreen() {
   );
   const [isAdding, setIsAdding] = useState(false);
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
-  const [movingPurchase, setMovingPurchase] = useState<Purchase | null>(null);
-  const swipeableRefs = useRef<Map<string, SwipeableMethods | null>>(new Map());
-  const openSwipeableId = useRef<string | null>(null);
-
-  const closeOpenSwipeable = useCallback(() => {
-    if (openSwipeableId.current) {
-      swipeableRefs.current.get(openSwipeableId.current)?.close();
-      openSwipeableId.current = null;
-    }
-  }, []);
+  const flatListRef = useRef<FlatList<ListItem>>(null);
 
   React.useEffect(() => {
     dispatch({ type: 'ENSURE_WEEK_EXISTS', weekStart: currentWeekStart });
@@ -176,19 +157,18 @@ export default function PurchasesScreen() {
     [dispatch, currentWeekStart, haptics],
   );
 
-  const handleMovePurchase = useCallback(
-    (newDate: string) => {
-      if (!movingPurchase) return;
-      dispatch({
-        type: 'EDIT_PURCHASE',
-        weekStart: currentWeekStart,
-        purchase: { ...movingPurchase, date: newDate },
-      });
-      haptics.light();
-      setMovingPurchase(null);
-    },
-    [dispatch, currentWeekStart, movingPurchase, haptics],
-  );
+  const scrollToEditingItem = useCallback(() => {
+    if (!editingPurchaseId) return;
+    const index = listData.findIndex(
+      (item) => item.type === 'purchase' && item.purchase.id === editingPurchaseId,
+    );
+    if (index < 0) return;
+    const sub = Keyboard.addListener('keyboardDidShow', () => {
+      sub.remove();
+      flatListRef.current?.scrollToIndex({ index, viewPosition: 1.0, animated: true });
+    });
+    setTimeout(() => sub.remove(), 500);
+  }, [editingPurchaseId, listData]);
 
   const today = getTodayString();
 
@@ -229,57 +209,29 @@ export default function PurchasesScreen() {
               handleDeletePurchase(purchase.id);
               setEditingPurchaseId(null);
             }}
+            onLayout={scrollToEditingItem}
           />
         );
       }
 
       return (
-        <SwipeableRow
-          onDelete={() => handleDeletePurchase(purchase.id)}
-          onSwipeOpen={() => {
-            if (openSwipeableId.current && openSwipeableId.current !== purchase.id) {
-              swipeableRefs.current.get(openSwipeableId.current)?.close();
-            }
-            openSwipeableId.current = purchase.id;
-          }}
-          swipeableRef={{
-            get current() {
-              return swipeableRefs.current.get(purchase.id) ?? null;
-            },
-            set current(ref: SwipeableMethods | null) {
-              if (ref) {
-                swipeableRefs.current.set(purchase.id, ref);
-              } else {
-                swipeableRefs.current.delete(purchase.id);
-              }
-            },
-          }}
+        <Pressable
+          onPress={isEditable ? () => {
+            setEditingPurchaseId(purchase.id);
+          } : undefined}
+          style={({ pressed }) => [
+            styles.row,
+            pressed && styles.rowPressed,
+          ]}
         >
-          <Pressable
-            onPress={isEditable ? () => {
-              closeOpenSwipeable();
-              setEditingPurchaseId(purchase.id);
-            } : undefined}
-            onLongPress={isEditable ? () => {
-              closeOpenSwipeable();
-              haptics.light();
-              setMovingPurchase(purchase);
-            } : undefined}
-            delayLongPress={300}
-            style={({ pressed }) => [
-              styles.row,
-              pressed && styles.rowPressed,
-            ]}
-          >
-            <Text style={styles.rowName} numberOfLines={1}>
-              {purchase.name}
-            </Text>
-            <Text style={styles.rowAmount}>{formatDollars(purchase.amount)}</Text>
-          </Pressable>
-        </SwipeableRow>
+          <Text style={styles.rowName} numberOfLines={1}>
+            {purchase.name}
+          </Text>
+          <Text style={styles.rowAmount}>{formatDollars(purchase.amount)}</Text>
+        </Pressable>
       );
     },
-    [editingPurchaseId, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today, closeOpenSwipeable],
+    [editingPurchaseId, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today, scrollToEditingItem],
   );
 
   const keyExtractor = useCallback((item: ListItem) => item.key, []);
@@ -297,58 +249,25 @@ export default function PurchasesScreen() {
         onBudgetChange={handleBudgetChange}
       />
 
-      <FlatList
-        data={listData}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        contentContainerStyle={styles.listContent}
-        keyboardShouldPersistTaps="handled"
-      />
-
-      {/* Move to day modal */}
-      <Modal
-        visible={movingPurchase !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMovingPurchase(null)}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={insets.top}
       >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setMovingPurchase(null)}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Move to</Text>
-            {weekDates.map((dateStr) => {
-              const isCurrent = movingPurchase?.date === dateStr;
-              return (
-                <Pressable
-                  key={dateStr}
-                  style={({ pressed }) => [
-                    styles.modalOption,
-                    isCurrent && styles.modalOptionCurrent,
-                    pressed && styles.modalOptionPressed,
-                  ]}
-                  onPress={() => handleMovePurchase(dateStr)}
-                  disabled={isCurrent}
-                >
-                  <Text style={[
-                    styles.modalOptionDay,
-                    isCurrent && styles.modalOptionTextCurrent,
-                  ]}>
-                    {getDayName(dateStr)}
-                  </Text>
-                  <Text style={[
-                    styles.modalOptionDate,
-                    isCurrent && styles.modalOptionTextCurrent,
-                  ]}>
-                    {formatShortDate(dateStr)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </Pressable>
-      </Modal>
+        <FlatList
+          ref={flatListRef}
+          data={listData}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={styles.listContent}
+          keyboardShouldPersistTaps="handled"
+          onScrollToIndexFailed={(info) => {
+            setTimeout(() => {
+              flatListRef.current?.scrollToIndex({ index: info.index, viewPosition: 1.0, animated: true });
+            }, 200);
+          }}
+        />
+      </KeyboardAvoidingView>
 
       {isAdding && (
         <PurchaseForm
@@ -378,11 +297,13 @@ function EditRow({
   onSubmit,
   onCancel,
   onDelete,
+  onLayout,
 }: {
   purchase: Purchase;
   onSubmit: (name: string, amount: number) => void;
   onCancel: () => void;
   onDelete: () => void;
+  onLayout?: () => void;
 }) {
   const [editName, setEditName] = React.useState(purchase.name);
   const [editAmount, setEditAmount] = React.useState(String(purchase.amount));
@@ -397,7 +318,7 @@ function EditRow({
   };
 
   return (
-    <View style={styles.editContainer}>
+    <View style={styles.editContainer} onLayout={onLayout}>
       <TextInput
         style={styles.editInputField}
         placeholderTextColor={colors.textTertiary}
@@ -572,51 +493,6 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.danger,
     fontWeight: '600',
-  },
-  // Move-to modal
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    padding: spacing.lg,
-    width: 280,
-  },
-  modalTitle: {
-    ...typography.subheading,
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  modalOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.sm + spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.sm,
-    marginBottom: spacing.xs,
-  },
-  modalOptionCurrent: {
-    backgroundColor: colors.primaryMuted,
-  },
-  modalOptionPressed: {
-    backgroundColor: colors.surfaceHover,
-  },
-  modalOptionDay: {
-    ...typography.body,
-    color: colors.textPrimary,
-  },
-  modalOptionDate: {
-    ...typography.caption,
-    color: colors.textTertiary,
-  },
-  modalOptionTextCurrent: {
-    color: colors.primary,
   },
   addButton: {
     position: 'absolute',
