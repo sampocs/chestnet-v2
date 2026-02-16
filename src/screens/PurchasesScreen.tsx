@@ -13,6 +13,7 @@ import {
   isCurrentOrFutureWeek,
   getTodayString,
 } from '../utils/dates';
+import { Ionicons } from '@expo/vector-icons';
 import { formatDollars, parseDollarInput } from '../utils/currency';
 import { WeekHeader } from '../components/WeekHeader';
 import { PurchaseForm } from '../components/PurchaseForm';
@@ -36,6 +37,7 @@ export default function PurchasesScreen() {
   );
   const [isAdding, setIsAdding] = useState(false);
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
   const flatListRef = useRef<FlatList<ListItem>>(null);
 
   // Navigate to a specific week when coming from History
@@ -93,6 +95,7 @@ export default function PurchasesScreen() {
     setCurrentWeekStart((prev) => shiftWeek(prev, -1));
     setIsAdding(false);
     setEditingPurchaseId(null);
+    setEditingDate(null);
   }, [haptics]);
 
   const handleNextWeek = useCallback(() => {
@@ -100,6 +103,7 @@ export default function PurchasesScreen() {
     setCurrentWeekStart((prev) => shiftWeek(prev, 1));
     setIsAdding(false);
     setEditingPurchaseId(null);
+    setEditingDate(null);
   }, [haptics]);
 
   const handleJumpToCurrentWeek = useCallback(() => {
@@ -107,6 +111,7 @@ export default function PurchasesScreen() {
     setCurrentWeekStart(getWeekStart(new Date()));
     setIsAdding(false);
     setEditingPurchaseId(null);
+    setEditingDate(null);
   }, [haptics]);
 
   const handleBudgetChange = useCallback(
@@ -148,15 +153,16 @@ export default function PurchasesScreen() {
   );
 
   const handleEditPurchase = useCallback(
-    (id: string, name: string, amount: number) => {
+    (id: string, name: string, amount: number, date: string) => {
       const existing = purchases.find((p) => p.id === id);
       if (!existing) return;
       dispatch({
         type: 'EDIT_PURCHASE',
         weekStart: currentWeekStart,
-        purchase: { ...existing, name, amount },
+        purchase: { ...existing, name, amount, date },
       });
       setEditingPurchaseId(null);
+      setEditingDate(null);
     },
     [dispatch, currentWeekStart, purchases],
   );
@@ -191,15 +197,53 @@ export default function PurchasesScreen() {
   const renderItem = useCallback(
     ({ item }: { item: ListItem }) => {
       if (item.type === 'day-header') {
-        const isToday = item.dateStr === today;
+        // Check if this header is above the currently-editing purchase
+        const editingPurchase = editingPurchaseId
+          ? purchases.find((p) => p.id === editingPurchaseId)
+          : null;
+        const isEditHeader = editingPurchase && item.dateStr === editingPurchase.date;
+        // When editing, display the selected date (which may differ from the original)
+        const displayDate = isEditHeader && editingDate ? editingDate : item.dateStr;
+        const isToday = displayDate === today;
+        const dateIndex = isEditHeader && editingDate ? weekDates.indexOf(editingDate) : -1;
+        const showPrev = isEditHeader && dateIndex > 0;
+        const showNext = isEditHeader && dateIndex < weekDates.length - 1;
         return (
           <View style={[styles.dayHeader, isToday && styles.dayHeaderToday]}>
-            <Text style={[styles.dayName, isToday && styles.dayNameToday]}>
-              {getDayName(item.dateStr)}
+            {isEditHeader && (
+              <Pressable
+                onPress={showPrev ? () => {
+                  haptics.light();
+                  setEditingDate(weekDates[dateIndex - 1]);
+                } : undefined}
+                style={({ pressed }) => [
+                  styles.dayHeaderArrow,
+                  pressed && showPrev && { opacity: 0.5 },
+                ]}
+              >
+                <Ionicons name="chevron-back" size={18} color={showPrev ? colors.primary : colors.textTertiary} />
+              </Pressable>
+            )}
+            <Text style={[styles.dayName, isToday && styles.dayNameToday, isEditHeader && styles.dayNameEditing]}>
+              {getDayName(displayDate)}
             </Text>
-            <Text style={[styles.dayDate, isToday && styles.dayDateToday]}>
-              {isToday ? 'Today' : formatShortDate(item.dateStr)}
+            <Text style={[styles.dayDate, isToday && styles.dayDateToday, isEditHeader && styles.dayDateEditing]}>
+              {isToday && !isEditHeader ? 'Today' : formatShortDate(displayDate)}
             </Text>
+            {isEditHeader && (
+              <Pressable
+                onPress={showNext ? () => {
+                  haptics.light();
+                  setEditingDate(weekDates[dateIndex + 1]);
+                } : undefined}
+                style={({ pressed }) => [
+                  styles.dayHeaderArrow,
+                  pressed && showNext && { opacity: 0.5 },
+                ]}
+              >
+                <Ionicons name="chevron-forward" size={18} color={showNext ? colors.primary : colors.textTertiary} />
+              </Pressable>
+            )}
           </View>
         );
       }
@@ -219,11 +263,12 @@ export default function PurchasesScreen() {
         return (
           <EditRow
             purchase={purchase}
-            onSubmit={(name, amount) => handleEditPurchase(purchase.id, name, amount)}
-            onCancel={() => setEditingPurchaseId(null)}
+            onSubmit={(name, amount) => handleEditPurchase(purchase.id, name, amount, editingDate ?? purchase.date)}
+            onCancel={() => { setEditingPurchaseId(null); setEditingDate(null); }}
             onDelete={() => {
               handleDeletePurchase(purchase.id);
               setEditingPurchaseId(null);
+              setEditingDate(null);
             }}
             onLayout={scrollToEditingItem}
           />
@@ -234,6 +279,7 @@ export default function PurchasesScreen() {
         <Pressable
           onPress={isEditable ? () => {
             setEditingPurchaseId(purchase.id);
+            setEditingDate(purchase.date);
           } : undefined}
           style={({ pressed }) => [
             styles.row,
@@ -247,7 +293,7 @@ export default function PurchasesScreen() {
         </Pressable>
       );
     },
-    [editingPurchaseId, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today, scrollToEditingItem],
+    [editingPurchaseId, editingDate, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today, scrollToEditingItem, weekDates, purchases],
   );
 
   const keyExtractor = useCallback((item: ListItem) => item.key, []);
@@ -424,6 +470,16 @@ const styles = StyleSheet.create({
   },
   dayDateToday: {
     color: colors.primary,
+  },
+  dayNameEditing: {
+    color: colors.textPrimary,
+  },
+  dayDateEditing: {
+    color: colors.textSecondary,
+  },
+  dayHeaderArrow: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
   },
   emptyDay: {
     paddingVertical: spacing.sm,
