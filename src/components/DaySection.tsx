@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, typography, spacing } from '../constants/theme';
+import { Colors, typography, spacing } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { getDayName, formatShortDate } from '../utils/dates';
 import { PurchaseRow } from './PurchaseRow';
 import type { Purchase } from '../types';
@@ -24,6 +25,9 @@ export function DaySection({
   onEditSubmit,
   onEditCancel,
 }: DaySectionProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   if (purchases.length === 0) return null;
 
   return (
@@ -47,23 +51,25 @@ export function DaySection({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.lg,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.xs,
-  },
-  dayName: {
-    ...typography.subheading,
-    color: colors.textPrimary,
-  },
-  date: {
-    ...typography.caption,
-    color: colors.textTertiary,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    container: {
+      marginBottom: spacing.lg,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+      paddingHorizontal: spacing.xs,
+    },
+    dayName: {
+      ...typography.subheading,
+      color: colors.textPrimary,
+    },
+    date: {
+      ...typography.caption,
+      color: colors.textTertiary,
+    },
+  });
+}

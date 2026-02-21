@@ -1,4 +1,31 @@
-export const colors = {
+export const lightColors = {
+  // Backgrounds
+  background: '#F2F2F7',
+  surface: '#FFFFFF',
+  surfaceHover: '#EBEBED',
+
+  // Primary accent
+  primary: '#10B981',
+  primaryMuted: '#10B9811A',
+
+  // Text hierarchy
+  textPrimary: '#1A1A1E',
+  textSecondary: '#6B7280',
+  textTertiary: '#A0AAB8',
+
+  // Semantic
+  success: '#0EA572',
+  successMuted: '#0EA5721A',
+  danger: '#E8445A',
+  dangerMuted: '#E8445A1A',
+
+  // Structural
+  border: '#E2E8F0',
+  inputBg: '#F2F2F7',
+  tabBarBg: '#FFFFFF',
+} as const;
+
+export const darkColors = {
   // Backgrounds
   background: '#131620',
   surface: '#1A1E2C',
@@ -24,6 +51,8 @@ export const colors = {
   inputBg: '#1A1E2B',
   tabBarBg: '#111420',
 } as const;
+
+export type Colors = typeof lightColors;
 
 export const typography = {
   displayLarge: {
@@ -91,14 +120,16 @@ export const radii = {
 export const shadows = {
   card: {
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   elevated: {
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
   },
 } as const;

@@ -2,7 +2,8 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { View, FlatList, StyleSheet, Pressable, Text, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, typography, spacing, radii } from '../constants/theme';
+import { Colors, typography, spacing, radii } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import {
   getWeekStart,
@@ -30,6 +31,7 @@ export default function PurchasesScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute<any>();
   const { data, dispatch } = useAppContext();
+  const { colors } = useTheme();
   const haptics = useHaptics();
 
   const [currentWeekStart, setCurrentWeekStart] = useState(() =>
@@ -41,7 +43,8 @@ export default function PurchasesScreen() {
   const [editingDate, setEditingDate] = useState<string | null>(null);
   const flatListRef = useRef<FlatList<ListItem>>(null);
 
-  // Navigate to a specific week when coming from History
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   useEffect(() => {
     if (route.params?.weekStart) {
       setCurrentWeekStart(route.params.weekStart);
@@ -68,7 +71,6 @@ export default function PurchasesScreen() {
 
   const isEditable = true;
 
-  // Build flat list: day headers + purchases interleaved, all 7 days shown
   const listData: ListItem[] = useMemo(() => {
     const purchasesByDate: Record<string, Purchase[]> = {};
     for (const p of purchases) {
@@ -203,12 +205,10 @@ export default function PurchasesScreen() {
   const renderItem = useCallback(
     ({ item }: { item: ListItem }) => {
       if (item.type === 'day-header') {
-        // Check if this header is above the currently-editing purchase
         const editingPurchase = editingPurchaseId
           ? purchases.find((p) => p.id === editingPurchaseId)
           : null;
         const isEditHeader = editingPurchase && item.dateStr === editingPurchase.date;
-        // When editing, display the selected date (which may differ from the original)
         const displayDate = isEditHeader && editingDate ? editingDate : item.dateStr;
         const isToday = displayDate === today;
         const dateIndex = isEditHeader && editingDate ? weekDates.indexOf(editingDate) : -1;
@@ -288,6 +288,7 @@ export default function PurchasesScreen() {
         return (
           <EditRow
             purchase={purchase}
+            colors={colors}
             onSubmit={(name, amount) => handleEditPurchase(purchase.id, name, amount, editingDate ?? purchase.date)}
             onCancel={() => { setEditingPurchaseId(null); setEditingDate(null); }}
             onDelete={() => {
@@ -318,7 +319,7 @@ export default function PurchasesScreen() {
         </Pressable>
       );
     },
-    [editingPurchaseId, editingDate, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today, scrollToEditingItem, weekDates, purchases],
+    [styles, colors, editingPurchaseId, editingDate, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today, scrollToEditingItem, weekDates, purchases],
   );
 
   const keyExtractor = useCallback((item: ListItem) => item.key, []);
@@ -382,17 +383,20 @@ export default function PurchasesScreen() {
 
 function EditRow({
   purchase,
+  colors,
   onSubmit,
   onCancel,
   onDelete,
   onLayout,
 }: {
   purchase: Purchase;
+  colors: Colors;
   onSubmit: (name: string, amount: number) => void;
   onCancel: () => void;
   onDelete: () => void;
   onLayout?: () => void;
 }) {
+  const styles = useMemo(() => makeEditRowStyles(colors), [colors]);
   const [editName, setEditName] = React.useState(purchase.name);
   const [editAmount, setEditAmount] = React.useState(String(purchase.amount));
 
@@ -460,160 +464,167 @@ function EditRow({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  listContent: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: 120,
-  },
-  dayHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.xs,
-  },
-  dayHeaderToday: {
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-    paddingLeft: spacing.sm,
-  },
-  dayName: {
-    ...typography.subheading,
-    color: colors.textPrimary,
-  },
-  dayNameToday: {
-    color: colors.primary,
-  },
-  dayDate: {
-    ...typography.caption,
-    color: colors.textTertiary,
-  },
-  dayDateToday: {
-    color: colors.primary,
-  },
-  dayNameEditing: {
-    color: colors.textPrimary,
-  },
-  dayDateEditing: {
-    color: colors.textSecondary,
-  },
-  dayHeaderArrow: {
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.xs,
-  },
-  emptyDay: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.xs,
-  },
-  emptyDayText: {
-    ...typography.caption,
-    color: colors.textTertiary,
-  },
-  row: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + spacing.xs,
-    marginBottom: spacing.xs,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-  },
-  rowPressed: {
-    backgroundColor: colors.surfaceHover,
-  },
-  rowName: {
-    ...typography.body,
-    color: colors.textPrimary,
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  rowAmount: {
-    ...typography.bodyMono,
-    color: colors.textSecondary,
-  },
-  editContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    marginBottom: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  editInputField: {
-    marginBottom: spacing.sm,
-    backgroundColor: colors.inputBg,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + spacing.xs,
-    color: colors.textPrimary,
-    ...typography.body,
-  },
-  editActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.sm,
-  },
-  saveButtonText: {
-    ...typography.caption,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  cancelButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.sm,
-  },
-  cancelButtonText: {
-    ...typography.caption,
-    color: colors.textTertiary,
-  },
-  deleteButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.sm,
-  },
-  deleteButtonText: {
-    ...typography.caption,
-    color: colors.danger,
-    fontWeight: '600',
-  },
-  addButton: {
-    position: 'absolute',
-    right: spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-  },
-  addButtonPressed: {
-    transform: [{ scale: 0.93 }],
-    opacity: 0.9,
-  },
-  addButtonText: {
-    fontSize: 28,
-    fontWeight: '400',
-    color: '#FFFFFF',
-    marginTop: -1,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    listContent: {
+      paddingHorizontal: spacing.md,
+      paddingBottom: 120,
+    },
+    dayHeader: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+      marginTop: spacing.lg,
+      paddingHorizontal: spacing.xs,
+    },
+    dayHeaderToday: {
+      borderLeftWidth: 3,
+      borderLeftColor: colors.primary,
+      paddingLeft: spacing.sm,
+    },
+    dayName: {
+      ...typography.subheading,
+      color: colors.textPrimary,
+    },
+    dayNameToday: {
+      color: colors.primary,
+    },
+    dayDate: {
+      ...typography.caption,
+      color: colors.textTertiary,
+    },
+    dayDateToday: {
+      color: colors.primary,
+    },
+    dayNameEditing: {
+      color: colors.textPrimary,
+    },
+    dayDateEditing: {
+      color: colors.textSecondary,
+    },
+    dayHeaderArrow: {
+      paddingHorizontal: spacing.xs,
+      paddingVertical: spacing.xs,
+    },
+    emptyDay: {
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.xs,
+    },
+    emptyDayText: {
+      ...typography.caption,
+      color: colors.textTertiary,
+    },
+    row: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm + spacing.xs,
+      marginBottom: spacing.xs,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.primary,
+    },
+    rowPressed: {
+      backgroundColor: colors.surfaceHover,
+    },
+    rowName: {
+      ...typography.body,
+      color: colors.textPrimary,
+      flex: 1,
+      marginRight: spacing.md,
+    },
+    rowAmount: {
+      ...typography.bodyMono,
+      color: colors.textSecondary,
+    },
+    addButton: {
+      position: 'absolute',
+      right: spacing.lg,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+    },
+    addButtonPressed: {
+      transform: [{ scale: 0.93 }],
+      opacity: 0.9,
+    },
+    addButtonText: {
+      fontSize: 28,
+      fontWeight: '400',
+      color: '#FFFFFF',
+      marginTop: -1,
+    },
+  });
+}
+
+function makeEditRowStyles(colors: Colors) {
+  return StyleSheet.create({
+    editContainer: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      marginBottom: spacing.xs,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+    editInputField: {
+      marginBottom: spacing.sm,
+      backgroundColor: colors.inputBg,
+      borderRadius: radii.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm + spacing.xs,
+      color: colors.textPrimary,
+      ...typography.body,
+    },
+    editActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    saveButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radii.sm,
+    },
+    saveButtonText: {
+      ...typography.caption,
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
+    cancelButton: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radii.sm,
+    },
+    cancelButtonText: {
+      ...typography.caption,
+      color: colors.textTertiary,
+    },
+    deleteButton: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radii.sm,
+    },
+    deleteButtonText: {
+      ...typography.caption,
+      color: colors.danger,
+      fontWeight: '600',
+    },
+  });
+}

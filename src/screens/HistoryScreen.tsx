@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { View, FlatList, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, typography, spacing, radii } from '../constants/theme';
+import { Colors, typography, spacing, radii } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import { getWeekEnd, getWeekStart } from '../utils/dates';
 import { formatDollars } from '../utils/currency';
@@ -13,13 +14,14 @@ export default function HistoryScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { data } = useAppContext();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const currentWeekStart = getWeekStart(new Date());
 
   const summaries: WeekSummary[] = useMemo(() => {
     return Object.values(data.weeks)
       .filter((week) => {
-        // Hide future weeks unless they have purchases
         if (week.startDate > currentWeekStart) {
           return week.purchases.length > 0;
         }
@@ -79,50 +81,52 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  title: {
-    ...typography.heading,
-    color: colors.textPrimary,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  listContent: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xxl,
-  },
-  averageContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-    alignItems: 'center',
-  },
-  averageLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  averageValue: {
-    ...typography.displayLarge,
-    color: colors.textPrimary,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyStateText: {
-    ...typography.subheading,
-    color: colors.textSecondary,
-  },
-  emptyStateSubtext: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    marginTop: spacing.xs,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    title: {
+      ...typography.heading,
+      color: colors.textPrimary,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.sm,
+    },
+    listContent: {
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.xxl,
+    },
+    averageContainer: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+      marginBottom: spacing.md,
+      alignItems: 'center',
+    },
+    averageLabel: {
+      ...typography.caption,
+      color: colors.textSecondary,
+      marginBottom: spacing.xs,
+    },
+    averageValue: {
+      ...typography.displayLarge,
+      color: colors.textPrimary,
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    emptyStateText: {
+      ...typography.subheading,
+      color: colors.textSecondary,
+    },
+    emptyStateSubtext: {
+      ...typography.caption,
+      color: colors.textTertiary,
+      marginTop: spacing.xs,
+    },
+  });
+}

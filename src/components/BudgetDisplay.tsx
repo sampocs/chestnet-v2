@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,8 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
-import { colors, typography, spacing, radii } from '../constants/theme';
+import { Colors, typography, spacing, radii } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { formatDollars, parseDollarInput } from '../utils/currency';
 
 interface BudgetDisplayProps {
@@ -24,6 +25,8 @@ export function BudgetDisplay({
   isCurrentWeek,
   onBudgetChange,
 }: BudgetDisplayProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<TextInput>(null);
@@ -98,47 +101,49 @@ export function BudgetDisplay({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-  },
-  textRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-  },
-  progressTrack: {
-    width: '80%',
-    height: 6,
-    backgroundColor: colors.surface,
-    borderRadius: 3,
-    marginTop: spacing.md,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  spent: {
-    ...typography.displayLarge,
-  },
-  separator: {
-    ...typography.heading,
-    color: colors.textTertiary,
-  },
-  budget: {
-    ...typography.heading,
-    color: colors.textSecondary,
-  },
-  budgetEditable: {},
-  budgetInput: {
-    ...typography.heading,
-    color: colors.textPrimary,
-    backgroundColor: colors.inputBg,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    minWidth: 80,
-    textAlign: 'center',
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    container: {
+      alignItems: 'center',
+    },
+    textRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'center',
+    },
+    progressTrack: {
+      width: '80%',
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      marginTop: spacing.md,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 3,
+    },
+    spent: {
+      ...typography.displayLarge,
+    },
+    separator: {
+      ...typography.heading,
+      color: colors.textTertiary,
+    },
+    budget: {
+      ...typography.heading,
+      color: colors.textSecondary,
+    },
+    budgetEditable: {},
+    budgetInput: {
+      ...typography.heading,
+      color: colors.textPrimary,
+      backgroundColor: colors.inputBg,
+      borderRadius: radii.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      minWidth: 80,
+      textAlign: 'center',
+    },
+  });
+}

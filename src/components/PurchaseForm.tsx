@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   Keyboard,
 } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { colors, typography, spacing, radii, shadows } from '../constants/theme';
+import { Colors, typography, spacing, radii, shadows } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { parseDollarInput } from '../utils/currency';
 
 interface PurchaseFormProps {
@@ -17,6 +18,8 @@ interface PurchaseFormProps {
 }
 
 export function PurchaseForm({ onSubmit, onCancel }: PurchaseFormProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [name, setName] = useState('');
   const [amountStr, setAmountStr] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -98,68 +101,56 @@ export function PurchaseForm({ onSubmit, onCancel }: PurchaseFormProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-  },
-  wrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-  },
-  container: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.xl,
-    borderTopRightRadius: radii.xl,
-    padding: spacing.lg,
-    paddingBottom: spacing.md,
-    ...shadows.elevated,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  title: {
-    ...typography.subheading,
-    color: colors.textPrimary,
-  },
-  cancelText: {
-    ...typography.caption,
-    color: colors.textTertiary,
-  },
-  fields: {
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  input: {
-    backgroundColor: colors.inputBg,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 14,
-    color: colors.textPrimary,
-    ...typography.body,
-  },
-  submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    backgroundColor: colors.surfaceHover,
-  },
-  submitButtonPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
-  },
-  submitText: {
-    ...typography.subheading,
-    color: '#FFFFFF',
-  },
-  submitTextDisabled: {
-    color: colors.textTertiary,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    wrapper: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+    },
+    container: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radii.xl,
+      borderTopRightRadius: radii.xl,
+      padding: spacing.lg,
+      paddingBottom: spacing.md,
+      ...shadows.elevated,
+    },
+    fields: {
+      gap: spacing.sm,
+      marginBottom: spacing.md,
+    },
+    input: {
+      backgroundColor: colors.inputBg,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 14,
+      color: colors.textPrimary,
+      ...typography.body,
+    },
+    submitButton: {
+      backgroundColor: colors.primary,
+      borderRadius: radii.md,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    submitButtonDisabled: {
+      backgroundColor: colors.surfaceHover,
+    },
+    submitButtonPressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.98 }],
+    },
+    submitText: {
+      ...typography.subheading,
+      color: '#FFFFFF',
+    },
+    submitTextDisabled: {
+      color: colors.textTertiary,
+    },
+  });
+}

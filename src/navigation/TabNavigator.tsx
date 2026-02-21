@@ -3,11 +3,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import PurchasesScreen from '../screens/PurchasesScreen';
 import HistoryScreen from '../screens/HistoryScreen';
-import { colors, typography } from '../constants/theme';
+import { typography } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{

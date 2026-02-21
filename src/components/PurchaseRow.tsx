@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,8 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
-import { colors, typography, spacing, radii } from '../constants/theme';
+import { Colors, typography, spacing, radii } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { formatDollars, parseDollarInput } from '../utils/currency';
 import type { Purchase } from '../types';
 
@@ -28,12 +29,13 @@ export function PurchaseRow({
   onEditSubmit,
   onEditCancel,
 }: PurchaseRowProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [editName, setEditName] = useState(purchase.name);
   const [editAmount, setEditAmount] = useState(String(purchase.amount));
   const translateX = useRef(new Animated.Value(0)).current;
   const [showDelete, setShowDelete] = useState(false);
 
-  // Reset edit fields when entering edit mode
   React.useEffect(() => {
     if (isEditing) {
       setEditName(purchase.name);
@@ -128,9 +130,7 @@ export function PurchaseRow({
           <Text style={styles.deleteText}>Delete</Text>
         </Pressable>
       )}
-      <Animated.View
-        style={[styles.row, { transform: [{ translateX }] }]}
-      >
+      <Animated.View style={[styles.row, { transform: [{ translateX }] }]}>
         <Pressable
           style={({ pressed }) => [
             styles.rowContent,
@@ -150,95 +150,97 @@ export function PurchaseRow({
   );
 }
 
-const styles = StyleSheet.create({
-  rowWrapper: {
-    position: 'relative',
-    marginBottom: spacing.xs,
-  },
-  row: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-    overflow: 'hidden',
-  },
-  rowContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + spacing.xs,
-  },
-  rowPressed: {
-    backgroundColor: colors.surfaceHover,
-  },
-  name: {
-    ...typography.body,
-    color: colors.textPrimary,
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  amount: {
-    ...typography.bodyMono,
-    color: colors.textSecondary,
-  },
-  deleteAction: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 80,
-    backgroundColor: colors.danger,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deleteText: {
-    ...typography.caption,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  editContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    marginBottom: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  editInput: {
-    backgroundColor: colors.inputBg,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + spacing.xs,
-    color: colors.textPrimary,
-    ...typography.body,
-    marginBottom: spacing.sm,
-  },
-  editNameInput: {
-    flex: 0,
-  },
-  editAmountInput: {
-    flex: 0,
-  },
-  editActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  editButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.sm,
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-  },
-  saveButtonText: {
-    ...typography.caption,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  cancelButtonText: {
-    ...typography.caption,
-    color: colors.textTertiary,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    rowWrapper: {
+      position: 'relative',
+      marginBottom: spacing.xs,
+    },
+    row: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.md,
+      overflow: 'hidden',
+    },
+    rowContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm + spacing.xs,
+    },
+    rowPressed: {
+      backgroundColor: colors.surfaceHover,
+    },
+    name: {
+      ...typography.body,
+      color: colors.textPrimary,
+      flex: 1,
+      marginRight: spacing.md,
+    },
+    amount: {
+      ...typography.bodyMono,
+      color: colors.textSecondary,
+    },
+    deleteAction: {
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      bottom: 0,
+      width: 80,
+      backgroundColor: colors.danger,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    deleteText: {
+      ...typography.caption,
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
+    editContainer: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      marginBottom: spacing.xs,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+    editInput: {
+      backgroundColor: colors.inputBg,
+      borderRadius: radii.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm + spacing.xs,
+      color: colors.textPrimary,
+      ...typography.body,
+      marginBottom: spacing.sm,
+    },
+    editNameInput: {
+      flex: 0,
+    },
+    editAmountInput: {
+      flex: 0,
+    },
+    editActions: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    editButton: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radii.sm,
+    },
+    saveButton: {
+      backgroundColor: colors.primary,
+    },
+    saveButtonText: {
+      ...typography.caption,
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
+    cancelButtonText: {
+      ...typography.caption,
+      color: colors.textTertiary,
+    },
+  });
+}
