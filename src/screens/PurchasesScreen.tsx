@@ -36,6 +36,7 @@ export default function PurchasesScreen() {
     getWeekStart(new Date()),
   );
   const [isAdding, setIsAdding] = useState(false);
+  const [addingForDate, setAddingForDate] = useState<string | null>(null);
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null);
   const [editingDate, setEditingDate] = useState<string | null>(null);
   const flatListRef = useRef<FlatList<ListItem>>(null);
@@ -94,6 +95,7 @@ export default function PurchasesScreen() {
     haptics.light();
     setCurrentWeekStart((prev) => shiftWeek(prev, -1));
     setIsAdding(false);
+    setAddingForDate(null);
     setEditingPurchaseId(null);
     setEditingDate(null);
   }, [haptics]);
@@ -102,6 +104,7 @@ export default function PurchasesScreen() {
     haptics.light();
     setCurrentWeekStart((prev) => shiftWeek(prev, 1));
     setIsAdding(false);
+    setAddingForDate(null);
     setEditingPurchaseId(null);
     setEditingDate(null);
   }, [haptics]);
@@ -110,6 +113,7 @@ export default function PurchasesScreen() {
     haptics.light();
     setCurrentWeekStart(getWeekStart(new Date()));
     setIsAdding(false);
+    setAddingForDate(null);
     setEditingPurchaseId(null);
     setEditingDate(null);
   }, [haptics]);
@@ -127,12 +131,13 @@ export default function PurchasesScreen() {
 
   const handleAddPurchase = useCallback(
     (name: string, amount: number) => {
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      const weekDatesArr = getWeekDates(currentWeekStart);
-      const purchaseDate = weekDatesArr.includes(todayStr)
-        ? todayStr
-        : currentWeekStart;
+      const purchaseDate = (() => {
+        if (addingForDate) return addingForDate;
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const weekDatesArr = getWeekDates(currentWeekStart);
+        return weekDatesArr.includes(todayStr) ? todayStr : currentWeekStart;
+      })();
 
       const purchase: Purchase = {
         id: Crypto.randomUUID(),
@@ -148,8 +153,9 @@ export default function PurchasesScreen() {
       });
       haptics.success();
       setIsAdding(false);
+      setAddingForDate(null);
     },
-    [dispatch, currentWeekStart, haptics],
+    [dispatch, currentWeekStart, haptics, addingForDate],
   );
 
   const handleEditPurchase = useCallback(
@@ -208,9 +214,10 @@ export default function PurchasesScreen() {
         const dateIndex = isEditHeader && editingDate ? weekDates.indexOf(editingDate) : -1;
         const showPrev = isEditHeader && dateIndex > 0;
         const showNext = isEditHeader && dateIndex < weekDates.length - 1;
-        return (
-          <View style={[styles.dayHeader, isToday && styles.dayHeaderToday]}>
-            {isEditHeader && (
+
+        if (isEditHeader) {
+          return (
+            <View style={[styles.dayHeader, isToday && styles.dayHeaderToday]}>
               <Pressable
                 onPress={showPrev ? () => {
                   haptics.light();
@@ -223,14 +230,12 @@ export default function PurchasesScreen() {
               >
                 <Ionicons name="chevron-back" size={18} color={showPrev ? colors.primary : colors.textTertiary} />
               </Pressable>
-            )}
-            <Text style={[styles.dayName, isToday && styles.dayNameToday, isEditHeader && styles.dayNameEditing]}>
-              {getDayName(displayDate)}
-            </Text>
-            <Text style={[styles.dayDate, isToday && styles.dayDateToday, isEditHeader && styles.dayDateEditing]}>
-              {isToday && !isEditHeader ? 'Today' : formatShortDate(displayDate)}
-            </Text>
-            {isEditHeader && (
+              <Text style={[styles.dayName, styles.dayNameEditing]}>
+                {getDayName(displayDate)}
+              </Text>
+              <Text style={[styles.dayDate, styles.dayDateEditing]}>
+                {formatShortDate(displayDate)}
+              </Text>
               <Pressable
                 onPress={showNext ? () => {
                   haptics.light();
@@ -243,8 +248,28 @@ export default function PurchasesScreen() {
               >
                 <Ionicons name="chevron-forward" size={18} color={showNext ? colors.primary : colors.textTertiary} />
               </Pressable>
-            )}
-          </View>
+            </View>
+          );
+        }
+
+        return (
+          <Pressable
+            onLongPress={() => {
+              haptics.impact();
+              setIsAdding(true);
+              setAddingForDate(item.dateStr);
+            }}
+            delayLongPress={400}
+          >
+            <View style={[styles.dayHeader, isToday && styles.dayHeaderToday]}>
+              <Text style={[styles.dayName, isToday && styles.dayNameToday]}>
+                {getDayName(item.dateStr)}
+              </Text>
+              <Text style={[styles.dayDate, isToday && styles.dayDateToday]}>
+                {isToday ? 'Today' : formatShortDate(item.dateStr)}
+              </Text>
+            </View>
+          </Pressable>
         );
       }
 
@@ -335,7 +360,7 @@ export default function PurchasesScreen() {
       {isAdding && (
         <PurchaseForm
           onSubmit={handleAddPurchase}
-          onCancel={() => setIsAdding(false)}
+          onCancel={() => { setIsAdding(false); setAddingForDate(null); }}
         />
       )}
 
@@ -346,7 +371,7 @@ export default function PurchasesScreen() {
             pressed && styles.addButtonPressed,
             { bottom: insets.bottom + 16 },
           ]}
-          onPress={() => setIsAdding(true)}
+          onPress={() => { setIsAdding(true); setAddingForDate(null); }}
         >
           <Text style={styles.addButtonText}>+</Text>
         </Pressable>
