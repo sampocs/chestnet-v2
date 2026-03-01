@@ -113,15 +113,15 @@ function makeStyles(colors: Colors) {
     },
     progressTrack: {
       width: '80%',
-      height: 6,
+      height: 10,
       backgroundColor: colors.border,
-      borderRadius: 3,
+      borderRadius: 5,
       marginTop: spacing.md,
       overflow: 'hidden',
     },
     progressFill: {
       height: '100%',
-      borderRadius: 3,
+      borderRadius: 5,
     },
     spent: {
       ...typography.displayLarge,
