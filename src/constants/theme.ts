@@ -1,8 +1,8 @@
 export const lightColors = {
   // Backgrounds
-  background: '#F2F2F7',
+  background: '#EBEBF0',
   surface: '#FFFFFF',
-  surfaceHover: '#EBEBED',
+  surfaceHover: '#E2E2E7',
 
   // Primary accent
   primary: '#10B981',
@@ -27,9 +27,9 @@ export const lightColors = {
 
 export const darkColors = {
   // Backgrounds
-  background: '#131620',
-  surface: '#1A1E2C',
-  surfaceHover: '#242837',
+  background: '#0D0F17',
+  surface: '#1E2235',
+  surfaceHover: '#282D42',
 
   // Primary accent
   primary: '#10B981',
