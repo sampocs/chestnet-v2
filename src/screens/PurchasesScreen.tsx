@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { View, FlatList, StyleSheet, Pressable, Text, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, typography, spacing, radii } from '../constants/theme';
+import { Colors, typography, spacing, radii, shadows } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import {
@@ -302,21 +302,23 @@ export default function PurchasesScreen() {
       }
 
       return (
-        <Pressable
-          onPress={isEditable ? () => {
-            setEditingPurchaseId(purchase.id);
-            setEditingDate(purchase.date);
-          } : undefined}
-          style={({ pressed }) => [
-            styles.row,
-            pressed && styles.rowPressed,
-          ]}
-        >
-          <Text style={styles.rowName} numberOfLines={1}>
-            {purchase.name}
-          </Text>
-          <Text style={styles.rowAmount}>{formatDollars(purchase.amount)}</Text>
-        </Pressable>
+        <View style={styles.rowShadow}>
+          <Pressable
+            onPress={isEditable ? () => {
+              setEditingPurchaseId(purchase.id);
+              setEditingDate(purchase.date);
+            } : undefined}
+            style={({ pressed }) => [
+              styles.row,
+              pressed && styles.rowPressed,
+            ]}
+          >
+            <Text style={styles.rowName} numberOfLines={1}>
+              {purchase.name}
+            </Text>
+            <Text style={styles.rowAmount}>{formatDollars(purchase.amount)}</Text>
+          </Pressable>
+        </View>
       );
     },
     [styles, colors, editingPurchaseId, editingDate, isEditable, handleEditPurchase, handleDeletePurchase, haptics, today, scrollToEditingItem, weekDates, purchases],
@@ -519,6 +521,12 @@ function makeStyles(colors: Colors) {
       ...typography.caption,
       color: colors.textTertiary,
     },
+    rowShadow: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.md,
+      marginBottom: spacing.xs,
+      ...shadows.card,
+    },
     row: {
       backgroundColor: colors.surface,
       borderRadius: radii.md,
@@ -527,9 +535,9 @@ function makeStyles(colors: Colors) {
       justifyContent: 'space-between',
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm + spacing.xs,
-      marginBottom: spacing.xs,
       borderLeftWidth: 3,
       borderLeftColor: colors.primary,
+      overflow: 'hidden',
     },
     rowPressed: {
       backgroundColor: colors.surfaceHover,
