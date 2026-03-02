@@ -1,14 +1,14 @@
-import { getWeekStart, shiftWeek, getWeekDates } from './dates';
-import type { AppData } from '../types';
+import { getWeekStart, shiftWeek, getWeekDates } from "./dates";
+import type { AppData } from "../types";
 
 /**
  * Toggle this to seed the app with dummy data on load.
  * Set to false to use real persisted data.
  */
-export const USE_SEED_DATA = true;
+export const USE_SEED_DATA = false;
 
 function uuid(): string {
-  return 'seed-' + Math.random().toString(36).substring(2, 10);
+  return "seed-" + Math.random().toString(36).substring(2, 10);
 }
 
 export function generateSeedData(): AppData {
@@ -26,24 +26,24 @@ export function generateSeedData(): AppData {
   ];
 
   const purchasePool = [
-    { name: 'Groceries', min: 35, max: 120 },
-    { name: 'Amazon', min: 12, max: 85 },
-    { name: 'Coffee', min: 5, max: 8 },
-    { name: 'Dinner out', min: 25, max: 75 },
-    { name: 'Uber', min: 10, max: 35 },
-    { name: 'Drinks', min: 15, max: 60 },
-    { name: 'Gas', min: 30, max: 55 },
-    { name: 'Haircut', min: 25, max: 40 },
-    { name: 'Target', min: 20, max: 90 },
-    { name: 'Lunch', min: 12, max: 22 },
-    { name: 'Gym smoothie', min: 8, max: 14 },
-    { name: 'Parking', min: 5, max: 15 },
-    { name: 'Movie tickets', min: 15, max: 30 },
-    { name: 'Golf', min: 30, max: 65 },
-    { name: 'Dog food', min: 25, max: 45 },
-    { name: 'Pharmacy', min: 8, max: 30 },
-    { name: 'Dry cleaning', min: 15, max: 35 },
-    { name: 'Spotify', min: 11, max: 11 },
+    { name: "Groceries", min: 35, max: 120 },
+    { name: "Amazon", min: 12, max: 85 },
+    { name: "Coffee", min: 5, max: 8 },
+    { name: "Dinner out", min: 25, max: 75 },
+    { name: "Uber", min: 10, max: 35 },
+    { name: "Drinks", min: 15, max: 60 },
+    { name: "Gas", min: 30, max: 55 },
+    { name: "Haircut", min: 25, max: 40 },
+    { name: "Target", min: 20, max: 90 },
+    { name: "Lunch", min: 12, max: 22 },
+    { name: "Gym smoothie", min: 8, max: 14 },
+    { name: "Parking", min: 5, max: 15 },
+    { name: "Movie tickets", min: 15, max: 30 },
+    { name: "Golf", min: 30, max: 65 },
+    { name: "Dog food", min: 25, max: 45 },
+    { name: "Pharmacy", min: 8, max: 30 },
+    { name: "Dry cleaning", min: 15, max: 35 },
+    { name: "Spotify", min: 11, max: 11 },
   ];
 
   function randInt(min: number, max: number): number {
@@ -54,7 +54,7 @@ export function generateSeedData(): AppData {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  const weeks: AppData['weeks'] = {};
+  const weeks: AppData["weeks"] = {};
 
   weekStarts.forEach((weekStart, weekIndex) => {
     const dates = getWeekDates(weekStart);
@@ -80,7 +80,7 @@ export function generateSeedData(): AppData {
 
       // For current week, only use days up to today
       const availableDates = isCurrentWeek
-        ? dates.filter((d) => d <= new Date().toISOString().split('T')[0])
+        ? dates.filter((d) => d <= new Date().toISOString().split("T")[0])
         : dates;
       const date =
         availableDates.length > 0 ? pickRandom(availableDates) : dates[0];

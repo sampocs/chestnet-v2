@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, FlatList, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, typography, spacing, radii } from '../constants/theme';
+import { Colors, typography, spacing, radii, shadows } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import { getWeekEnd, getWeekStart } from '../utils/dates';
@@ -14,8 +14,8 @@ export default function HistoryScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { data } = useAppContext();
-  const { colors } = useTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
 
   const currentWeekStart = getWeekStart(new Date());
 
@@ -81,7 +81,9 @@ export default function HistoryScreen() {
   );
 }
 
-function makeStyles(colors: Colors) {
+function makeStyles(colors: Colors, isDark: boolean) {
+  const lightShadow = isDark ? {} : shadows.card;
+
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -104,6 +106,7 @@ function makeStyles(colors: Colors) {
       padding: spacing.lg,
       marginBottom: spacing.md,
       alignItems: 'center',
+      ...lightShadow,
     },
     averageLabel: {
       ...typography.caption,

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Colors, typography, spacing, radii } from '../constants/theme';
+import { Colors, typography, spacing, radii, shadows } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { formatShortDate } from '../utils/dates';
 import { formatDollars } from '../utils/currency';
@@ -13,8 +13,8 @@ interface WeekHistoryRowProps {
 }
 
 export function WeekHistoryRow({ summary, isCurrent, onPress }: WeekHistoryRowProps) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
 
   const statusColor = summary.isOverBudget ? colors.danger : colors.success;
   const statusBg = summary.isOverBudget ? colors.dangerMuted : colors.successMuted;
@@ -56,7 +56,9 @@ export function WeekHistoryRow({ summary, isCurrent, onPress }: WeekHistoryRowPr
   );
 }
 
-function makeStyles(colors: Colors) {
+function makeStyles(colors: Colors, isDark: boolean) {
+  const lightShadow = isDark ? {} : shadows.card;
+
   return StyleSheet.create({
     container: {
       backgroundColor: colors.surface,
@@ -67,6 +69,7 @@ function makeStyles(colors: Colors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       borderLeftWidth: 3,
+      ...lightShadow,
     },
     pressed: {
       opacity: 0.7,
