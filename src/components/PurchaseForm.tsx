@@ -131,6 +131,8 @@ function makeStyles(colors: Colors) {
       paddingVertical: 14,
       color: colors.textPrimary,
       ...typography.body,
+      // iOS clips descenders and mis-centers single-line TextInput text when lineHeight is set
+      lineHeight: undefined,
     },
     submitButton: {
       backgroundColor: colors.primary,
