@@ -9,7 +9,8 @@
     "backgroundColor": "#131620",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.pochyly.chestnut"
+      "bundleIdentifier": "com.pochyly.chestnut",
+      "appleTeamId": "3W3H65F89G"
     },
     "platforms": [
       "ios"
