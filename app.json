@@ -6,13 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "backgroundColor": "#131620",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#131620"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.pochyly.chestnut"
@@ -21,7 +15,15 @@
       "ios"
     ],
     "plugins": [
-      "expo-splash-screen"
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#131620"
+        }
+      ],
+      "expo-font"
     ]
   }
 }

@@ -104,7 +104,7 @@ export function PurchaseForm({ onSubmit, onCancel }: PurchaseFormProps) {
 function makeStyles(colors: Colors) {
   return StyleSheet.create({
     backdrop: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     wrapper: {
