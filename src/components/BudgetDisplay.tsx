@@ -137,6 +137,8 @@ function makeStyles(colors: Colors) {
     budgetEditable: {},
     budgetInput: {
       ...typography.heading,
+      // iOS clips descenders and mis-centers single-line TextInput text when lineHeight is set
+      lineHeight: undefined,
       color: colors.textPrimary,
       backgroundColor: colors.inputBg,
       borderRadius: radii.sm,

@@ -597,6 +597,8 @@ function makeEditRowStyles(colors: Colors) {
       paddingVertical: spacing.sm + spacing.xs,
       color: colors.textPrimary,
       ...typography.body,
+      // iOS clips descenders and mis-centers single-line TextInput text when lineHeight is set
+      lineHeight: undefined,
     },
     editActions: {
       flexDirection: 'row',
